@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Posture Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel">
+            <div>
+                <div class="logo">
+                    <h1>Posture<span>.AI</span></h1>
+                </div>
+                
+                <!-- Profile Selector -->
+                <div class="profile-section" style="margin-top: 15px; padding: 0 10px;">
+                    <select id="profile-selector" style="width: 100%; padding: 8px; border-radius: 6px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: var(--accent-blue); font-weight: 600; cursor: pointer;">
+                        <!-- Options injected by JS -->
+                    </select>
+                </div>
+                
+                <div class="nav-tabs" style="margin-top: 20px; display: flex; gap: 10px; margin-bottom: 30px;">
+                    <button id="nav-live" class="ex-btn active" style="flex: 1; text-align: center; padding: 10px; font-size: 1rem;">🔴 Live</button>
+                    <button id="nav-history" class="ex-btn" style="flex: 1; text-align: center; padding: 10px; font-size: 1rem;">📅 History</button>
+                    <button id="nav-nutrition" class="ex-btn" style="flex: 1; text-align: center; padding: 10px; font-size: 1rem;">🍎 Diet</button>
+                </div>
+                
+                <div id="sidebar-exercise-section" class="exercise-selection">
+                    <h3>Select Exercise</h3>
+                    <div class="button-grid">
+                        <button class="ex-btn" data-mode="Pushup">Pushup</button>
+                        <button class="ex-btn" data-mode="Squat">Squat</button>
+                        <button class="ex-btn" data-mode="BicepCurl">Bicep Curl</button>
+                        <button class="ex-btn" data-mode="LateralRaise">Lateral Raise</button>
+                        <button class="ex-btn" data-mode="BentOverRow">Bent-Over Row</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="session-controls" id="sidebar-controls-section">
+                <button id="start-btn" class="primary-btn d-none">Start Workout</button>
+                <button id="stop-btn" class="danger-btn d-none">Stop Workout</button>
+                <button id="end-session-btn" class="danger-btn" style="margin-top: 20px; background: #64748b;">End Session</button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="live-view" style="display: flex; flex-direction: column; height: 100%; gap: 20px;">
+                <header class="top-bar glass-panel">
+                    <h2 id="current-mode-display">Select an exercise to begin</h2>
+                    <div class="status-indicator">
+                        <span class="dot live-dot"></span> Live Feed
+                    </div>
+                </header>
+
+                <div class="video-container glass-panel">
+                    <!-- Video Feed from FastAPI -->
+                    <img id="video-feed" src="/video_feed" alt="Camera Feed Loading..." />
+                    
+                    <!-- Overlay Feedback -->
+                    <div id="feedback-overlay" class="feedback-overlay">
+                        Waiting for data...
+                    </div>
+                </div>
+
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card glass-panel correct" style="flex: 2;">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-info">
+                            <h3>Reps</h3>
+                            <p id="correct-counter">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel accuracy" style="flex: 1;">
+                        <div class="stat-icon">🎯</div>
+                        <div class="stat-info">
+                            <h3>Form Score</h3>
+                            <p id="accuracy-score">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="history-view" class="d-none" style="display: flex; flex-direction: column; height: 100%; gap: 20px;">
+                <header class="top-bar glass-panel">
+                    <h2>Workout History</h2>
+                </header>
+                <div class="glass-panel" style="flex: 1; padding: 30px; overflow-y: auto;" id="history-list-container">
+                    <!-- History cards injected here -->
+                </div>
+            </div>
+
+            <!-- Nutrition View -->
+            <div id="nutrition-view" class="d-none" style="display: flex; flex-direction: column; height: 100%; gap: 20px;">
+                <header class="top-bar glass-panel">
+                    <h2>Nutrition & Macros</h2>
+                </header>
+                <div class="glass-panel" style="flex: 1; padding: 30px; overflow-y: auto;">
+                    <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+                        
+                        <!-- Input Form -->
+                        <div style="flex: 1; min-width: 300px; background: rgba(0,0,0,0.2); padding: 25px; border-radius: 12px; border-left: 4px solid var(--accent-blue);">
+                            <h3 style="color: var(--accent-blue); margin-bottom: 20px;">Your Stats</h3>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: block; color: var(--text-secondary); margin-bottom: 5px;">Gender</label>
+                                <select id="nutri-gender" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; color: var(--text-secondary); margin-bottom: 5px;">Age</label>
+                                    <input type="number" id="nutri-age" placeholder="e.g. 25" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; color: var(--text-secondary); margin-bottom: 5px;">Height (cm)</label>
+                                    <input type="number" id="nutri-height" placeholder="e.g. 175" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 15px; margin-bottom: 25px;">
+                                <div style="flex: 1;">
+                                    <label style="display: block; color: var(--text-secondary); margin-bottom: 5px;">Current Weight (kg)</label>
+                                    <input type="number" id="nutri-weight" placeholder="e.g. 80" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <label style="display: block; color: var(--text-secondary); margin-bottom: 5px;">Target Weight (kg)</label>
+                                    <input type="number" id="nutri-target" placeholder="e.g. 75" style="width: 100%; padding: 10px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white;">
+                                </div>
+                            </div>
+                            
+                            <button id="calc-macro-btn" class="primary-btn" style="width: 100%;">Calculate Macros</button>
+                        </div>
+                        
+                        <!-- Results Box -->
+                        <div style="flex: 1; min-width: 300px; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.2); padding: 25px; border-radius: 12px; border-left: 4px solid var(--accent-green);">
+                            <h3 style="color: var(--accent-green); margin-bottom: 30px;">Daily Targets</h3>
+                            
+                            <div style="text-align: center; margin-bottom: 30px;">
+                                <span style="font-size: 1.2rem; color: var(--text-secondary); display: block; margin-bottom: 10px;">Calories</span>
+                                <span id="res-calories" style="font-size: 3rem; font-weight: 800; color: white;">--</span>
+                                <span style="color: var(--text-secondary); font-size: 0.9rem; display: block; margin-top: 5px;" id="res-goal-type">Maintenance</span>
+                            </div>
+                            
+                            <div style="text-align: center;">
+                                <span style="font-size: 1.2rem; color: var(--text-secondary); display: block; margin-bottom: 10px;">Protein</span>
+                                <span id="res-protein" style="font-size: 3rem; font-weight: 800; color: white;">--</span>
+                                <span style="color: var(--text-secondary); font-size: 0.9rem; display: block; margin-top: 5px;">grams / day</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Session Overview Modal -->
+    <div id="summary-modal" class="modal hidden">
+        <div class="modal-content glass-panel" style="width: 600px; max-height: 80vh; overflow-y: auto;">
+            <h2>Session Complete! 🎉</h2>
+            <div id="modal-breakdown" class="modal-breakdown">
+                <!-- Breakdown injected by JS -->
+            </div>
+            <button id="close-modal-btn" class="primary-btn">New Workout</button>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
